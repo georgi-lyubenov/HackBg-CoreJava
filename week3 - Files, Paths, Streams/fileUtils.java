@@ -4,11 +4,12 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +66,18 @@ public class fileUtils {
 		}		
 		return hm;
 	}
-	//4.Subtitles
+	public void fixEncoding(File path)throws IOException {
+		
+		String oldEncoding = readFrom(path);
+		String fixed = "";
+		try {
+			fixed = new String(oldEncoding.getBytes("windows-1251"),
+					Charset.forName("UTF8"));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		writeTo(fixed, path);
+	}
 	public static Path reduceFilePath(Path p){
 		return p.normalize();
 	}
@@ -100,24 +112,28 @@ public class fileUtils {
 		File file = new File("/home/georgi/testfile.txt");
 		Path p = Paths.get("/home/georgi/testfile.txt");
 		String str = "this is a test string";
+		/*
 		try{
 			if (!file.exists()) {
 				file.createNewFile();
 			}
 			fileUtils.writeTo(str, file);
-			//System.out.print(FileUtils.readFromPath(p));
-			//System.out.println(FileUtils.readFrom(file));
+			System.out.print(FileUtils.readFromPath(p));
+			System.out.println(FileUtils.readFrom(file));
 		}
 		catch(IOException e){
 			e.printStackTrace();
 		}
+		*/
 		File testParseFile = new File("/home/georgi/testParseFile.txt");
+		/*
 		try{
 		Map<String, String> parsedFile = fileUtils.parseProperties(testParseFile);
 		System.out.println(parsedFile.toString());
 		} catch(IOException e){
 			e.printStackTrace();
 		}
+		*/
 		Path testPath = Paths.get("/etc/../etc/../etc/../");
 		//System.out.print(reduceFilePath(testPath));
 		/*
