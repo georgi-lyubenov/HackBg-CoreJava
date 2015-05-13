@@ -22,17 +22,20 @@ public class ParalelWebCrawler {
 	public URL homepage;
 	public boolean flag = true;
 	public int count = 1;
-	
-	public boolean getFlag(){
+
+	public boolean getFlag() {
 		return flag;
 	}
-	public void setFlag(boolean flag){
+
+	public void setFlag(boolean flag) {
 		this.flag = flag;
 	}
-	public void increment(){
+
+	public void increment() {
 		count++;
 	}
-	public int getCount(){
+
+	public int getCount() {
 		return count;
 	}
 
@@ -123,13 +126,10 @@ public class ParalelWebCrawler {
 		Queue<URL> q = c.getQueue();
 		String name1 = "T1";
 		String name2 = "T2";
-		String name3 = "T3";
 		Thread t1 = new Thread(new MyThread1(q, c, name1));
 		Thread t2 = new Thread(new MyThread2(q, c, name2));
-		Thread t3 = new Thread(new MyThread3(q, c, name3));
 		t1.start();
 		t2.start();
-		t3.start();
 	}
 
 }
@@ -145,17 +145,33 @@ class MyThread1 implements Runnable {
 		this.name = name;
 	}
 
+	public Queue<URL> FirstHalfQueue() {
+		Queue<URL> result = new LinkedList<URL>();
+		int HalfSize = q.size() / 2;
+		while (q.size() != HalfSize)
+			result.add(q.poll());
+		return result;
+	}
+
+	public void setHalfQueue() {
+		q = FirstHalfQueue();
+	}
+
 	public void run() {
-			while(!q.isEmpty()) {
-					System.out.println(this.name + ": " + c.getCount() + " " + q.remove());
-					try {
-						c.crawlPage(q.remove());
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				c.increment();
+		setHalfQueue();
+		while (!q.isEmpty()) {
+			System.out.println(this.name + ": " + c.getCount() + " "
+					+ q.remove());
+			if (!q.peek().toString().contains("www.legendarysurvey.com")) {
+				try {
+					c.crawlPage(q.remove());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
-		
+			c.increment();
+		}
+
 	}
 }
 
@@ -169,59 +185,32 @@ class MyThread2 implements Runnable {
 		this.c = c;
 		this.name = name;
 	}
-	public Queue<URL> FirstThirdQueue(Queue<URL> q){
-		int FirstThirdfSize = q.size()/3;
-		while(q.size() != FirstThirdfSize)
-			q.remove();
-		return q;
-	}
-	public void setHalfQueue(){
-		this.q = FirstThirdQueue(q);
-	}
-	public void run() {
-		setHalfQueue();
-			while (!q.isEmpty()) {
-				System.out.println(this.name + ": " + c.getCount() + " " + q.remove());
-				try {
-					c.crawlPage(q.remove());
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				c.increment();
-			}
-		
-	}
-}
-class MyThread3 implements Runnable {
-	Queue<URL> q;
-	ParalelWebCrawler c;
-	String name;
 
-	public MyThread3(Queue<URL> q, ParalelWebCrawler c, String name) {
-		this.q = q;
-		this.c = c;
-		this.name = name;
-	}
-	public Queue<URL> SecondThird(Queue<URL> q){
-		int SecondThirdSize = q.size()/2;
-		while(q.size() != SecondThirdSize)
+	public Queue<URL> SecondHalfQueue() {
+		int HalfSize = q.size() / 2;
+		while (q.size() != HalfSize)
 			q.remove();
 		return q;
 	}
-	public void setHalfQueue(){
-		this.q = SecondThird(q);
+
+	public void setHalfQueue() {
+		q = SecondHalfQueue();
 	}
+
 	public void run() {
 		setHalfQueue();
-			while (!q.isEmpty()) {
-				System.out.println(this.name + ": " + c.getCount() + " " + q.remove());
+		while (!q.isEmpty()) {
+			System.out.println(this.name + ": " + c.getCount() + " "
+					+ q.remove());
+			if (!q.peek().toString().contains("www.legendarysurvey.com")) {
 				try {
 					c.crawlPage(q.remove());
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				c.increment();
 			}
-		
+			c.increment();
+		}
+
 	}
 }
