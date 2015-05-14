@@ -27,36 +27,48 @@ class Node {
 
 class BlockingQueueImpl {
 	public Node root;
+	public int elements = 0;
+	public int capacity;
+	public boolean available = true;
 
-	public BlockingQueueImpl() {
-		root = null;
+	public BlockingQueueImpl(int value) {
+		capacity = value;
 	}
 
 	public synchronized void add(int value) {
+		while (elements > capacity) {
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		Node node = new Node(value);
 		node.setNext(root);
 		root = node;
+		elements++;
 		notifyAll();
 	}
 
-	public Node poll() {
+	public synchronized Node poll() {
 		Node node = root;
 		Node previous = null;
-		while (node.next() != null) {
-			synchronized (this) {
-				try {
-					wait();
-					
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
+		while (elements < 0 ) {
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}		
+		}
+		while(node.next() != null){
 			previous = node;
 			node = node.next();
 			node = previous.next();
 			previous.setNext(null);
 		}
+		elements --;
 		return node;
 	}
 
@@ -84,15 +96,17 @@ class ThreadPoll implements Runnable {
 	}
 
 	public void run() {
-		System.out.println("poll");
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		while (true) {
+			// System.out.println("poll ");
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			System.out.println("Consumer poll " + bq.poll().getValue());
+			System.out.println("");
 		}
-		System.out.println("poll " + bq.poll().getValue());
-
 	}
 }
 
@@ -104,15 +118,24 @@ class ThreadOffer implements Runnable {
 	}
 
 	public void run() {
-		bq.offer(5);
-		System.out.println("add");
-		
+		int i = 1;
+		while (true) {
+			bq.offer(i);
+			System.out.println("Producer add  " + i);
+			i++;
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 }
 
 public class BlockingQueue {
 	public static void main(String[] args) throws InterruptedException {
-		BlockingQueueImpl bq = new BlockingQueueImpl();
+		BlockingQueueImpl bq = new BlockingQueueImpl(1);
 		Thread t1 = new Thread(new ThreadPoll(bq));
 		Thread t2 = new Thread(new ThreadOffer(bq));
 		t1.start();
